@@ -1,17 +1,41 @@
 package com.eteration.simplebanking.controller;
 
-// This class is a place holder you can change the complete implementation
+import com.eteration.simplebanking.model.*;
+import com.eteration.simplebanking.request.TransactionRequest;
+import com.eteration.simplebanking.services.AccountService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/account")
 public class AccountController {
 
+    @Autowired
+    private AccountService accountService;
 
-    public Object getAccount() {
-        return null;
+    @PostMapping("/credit/{accountNumber}")
+    public ResponseEntity<TransactionStatus> credit(@PathVariable String accountNumber, @RequestBody TransactionRequest request) {
+        Account account = accountService.findAccount(accountNumber);
+        DepositTransaction transaction = new DepositTransaction(request.getAmount());
+        account.post(transaction);
+        return ResponseEntity.ok(new TransactionStatus("OK"));
     }
 
-    public Object credit( ) {
-        return null;
+    @PostMapping("/debit/{accountNumber}")
+    public ResponseEntity<TransactionStatus> debit(@PathVariable String accountNumber, @RequestBody TransactionRequest request) {
+        Account account = accountService.findAccount(accountNumber);
+        WithdrawalTransaction transaction = new WithdrawalTransaction(request.getAmount());
+        if (account.getBalance() < transaction.getAmount()) {
+            throw new InsufficientBalanceException("Insufficient balance");
+        }
+        account.post(transaction);
+        return ResponseEntity.ok(new TransactionStatus("OK"));
     }
-    public Object debit() {
-        return null;
-	}
+
+    @GetMapping("/{accountNumber}")
+    public ResponseEntity<Account> getAccount(@PathVariable String accountNumber) {
+        Account account = accountService.findAccount(accountNumber);
+        return ResponseEntity.ok(account);
+    }
 }

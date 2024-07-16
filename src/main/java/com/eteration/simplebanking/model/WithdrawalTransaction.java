@@ -1,8 +1,23 @@
 package com.eteration.simplebanking.model;
+import lombok.Data;
+import javax.persistence.DiscriminatorValue;
+import javax.persistence.Entity;
 
+@Data
+@Entity
+@DiscriminatorValue("WITHDRAWAL")
+public class WithdrawalTransaction extends Transaction {
+    public WithdrawalTransaction() {}
 
-// This class is a place holder you can change the complete implementation
-public class WithdrawalTransaction {
+    public WithdrawalTransaction(double amount) {
+        super(amount);
+    }
+
+    @Override
+    public void apply(Account account) {
+        account.setBalance(account.getBalance() - getAmount());
+    }
 }
+
 
 
